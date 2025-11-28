@@ -1,0 +1,47 @@
+name: Deploy GitHub Pages from _docs
+
+on:
+  push:
+    branches:
+      - master      # or main, change if needed
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # If you need a build step, add it here.
+      # Example (uncomment and adapt):
+      # - name: Build docs
+      #   run: |
+      #     ./build-docs.sh   # your script that outputs to _docs
+
+      - name: Upload _docs as artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _docs
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
